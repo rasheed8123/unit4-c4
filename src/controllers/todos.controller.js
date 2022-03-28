@@ -24,14 +24,43 @@ app.get("/",authenticate,async(req,res)=>{
         return res.send(400).send(err.message)
     }
 })
-app.get("/",authenticate,async(req,res)=>{
-    let founduser = req.user._id; 
+app.get("/:id",authenticate,async(req,res)=>{
+    if(req.user._id !== req.params.id){
+      return res.send(401).send({message:"logged in user cannot access this info"})
+    }
     try{
-    const data = await todo.find({userId:founduser}).lean().exec()
+    const data = await todo.find({userId:req.params.id}).lean().exec()
     return res.status(200).send(data)
     }catch(err){
         console.log(err.message)
         return res.send(400).send(err.message)
     }
 })
+app.patch("/:id",authenticate,async(req,res)=>{
+    if(req.user._id !== req.params.id){
+      return res.send(401).send({message:"logged in user cannot access this info"})
+    }
+    try{
+    const data = await todo.findByIdAndUpdate({userId:req.params.id},{$set:{"title":req.title}})
+    return res.status(200).send(data)
+    }catch(err){
+        console.log(err.message)
+        return res.send(400).send(err.message)
+    }
+})
+app.delete("/:id",authenticate,async(req,res)=>{
+    if(req.user._id !== req.params.id){
+      return res.send(401).send({message:"logged in user cannot have this access"})
+    }
+    try{
+    const data = await todo.findByIdAndDelete({userId:req.params.id})
+    return res.status(200).send(data)
+    }catch(err){
+        console.log(err.message)
+        return res.send(400).send(err.message)
+    }
+})
+module.exports = app;
+
+
 
